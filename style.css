@@ -14,9 +14,9 @@
   --card-bg: #1e1e1e;
   --text-color: #e0e0e0;
   --light-text: #b0b0b0;
-  --primary-color: #81d4fa;
+  --primary-color: #b3e5fc;
   --winter-blue: #2c3e50;
-  --accent-color: #5dade2;
+  --accent-color: #81d4fa;
 }
 
 * {
@@ -397,6 +397,7 @@ body {
   background: #f8f9fa;
   border: 2px dashed #ddd;
   border-radius: 8px;
+  pointer-events: none; /* Essential for touch drag to see element below */
 }
 
 .timeline-item {

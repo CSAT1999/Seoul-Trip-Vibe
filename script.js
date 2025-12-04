@@ -1359,6 +1359,7 @@ function attachDragListeners(item) {
 
   item.setAttribute("draggable", "true");
 
+  // Mouse Drag Events
   item.addEventListener("dragstart", (e) => {
     item.classList.add("dragging");
     e.dataTransfer.effectAllowed = "move";
@@ -1372,6 +1373,68 @@ function attachDragListeners(item) {
       validateSchedule(dayBody);
       updateDayLocation(dayBody.closest(".day-card").id);
       saveSchedule();
+    }
+  });
+
+  // Touch Drag Events (Mobile Support)
+  let touchTimer = null;
+  let isDragging = false;
+  let startY = 0;
+
+  item.addEventListener("touchstart", (e) => {
+    if (e.touches.length > 1) return;
+    startY = e.touches[0].clientY;
+    
+    // Long press to start drag (300ms)
+    touchTimer = setTimeout(() => {
+      isDragging = true;
+      item.classList.add("dragging");
+      if (navigator.vibrate) navigator.vibrate(50);
+    }, 300);
+  }, { passive: false });
+
+  item.addEventListener("touchmove", (e) => {
+    if (!isDragging) {
+      // If moved significantly before timer fires, cancel drag (it's a scroll)
+      const currentY = e.touches[0].clientY;
+      if (Math.abs(currentY - startY) > 10) {
+        clearTimeout(touchTimer);
+      }
+      return;
+    }
+
+    e.preventDefault(); // Prevent scrolling while dragging
+    
+    const touch = e.touches[0];
+    const elementBelow = document.elementFromPoint(touch.clientX, touch.clientY);
+    if (!elementBelow) return;
+
+    const container = elementBelow.closest(".day-body");
+    if (container) {
+      const afterElement = getDragAfterElement(container, touch.clientY);
+      const addBtn = container.querySelector(".add-item-row");
+      
+      if (afterElement == null) {
+        if (addBtn) container.insertBefore(item, addBtn);
+        else container.appendChild(item);
+      } else {
+        container.insertBefore(item, afterElement);
+      }
+    }
+  }, { passive: false });
+
+  item.addEventListener("touchend", (e) => {
+    clearTimeout(touchTimer);
+    if (isDragging) {
+      isDragging = false;
+      item.classList.remove("dragging");
+      
+      const dayBody = item.closest(".day-body");
+      if (dayBody) {
+        validateSchedule(dayBody);
+        updateDayLocation(dayBody.closest(".day-card").id);
+        saveSchedule();
+      }
     }
   });
 
