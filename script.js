@@ -4,36 +4,36 @@ document.addEventListener("DOMContentLoaded", () => {
   const dayCards = document.querySelectorAll(".day-card");
 
   // Theme Toggle Logic
-  const themeToggle = document.getElementById('theme-toggle');
+  const themeToggle = document.getElementById("theme-toggle");
   if (themeToggle) {
-      const html = document.documentElement;
-      const themeIcon = themeToggle.querySelector('i');
+    const html = document.documentElement;
+    const themeIcon = themeToggle.querySelector("i");
 
-      // Check local storage
-      const savedTheme = localStorage.getItem('theme') || 'light';
-      html.setAttribute('data-theme', savedTheme);
-      updateThemeIcon(savedTheme);
+    // Check local storage
+    const savedTheme = localStorage.getItem("theme") || "light";
+    html.setAttribute("data-theme", savedTheme);
+    updateThemeIcon(savedTheme);
 
-      themeToggle.addEventListener('click', () => {
-        const currentTheme = html.getAttribute('data-theme');
-        const newTheme = currentTheme === 'light' ? 'dark' : 'light';
-        html.setAttribute('data-theme', newTheme);
-        localStorage.setItem('theme', newTheme);
-        updateThemeIcon(newTheme);
-        // Update navbar background immediately
-        const navbar = document.querySelector(".navbar");
-        if (navbar && typeof updateNavbar === 'function') {
-            updateNavbar();
-        }
-      });
-
-      function updateThemeIcon(theme) {
-        if (theme === 'dark') {
-          themeIcon.className = 'fa-solid fa-sun';
-        } else {
-          themeIcon.className = 'fa-solid fa-moon';
-        }
+    themeToggle.addEventListener("click", () => {
+      const currentTheme = html.getAttribute("data-theme");
+      const newTheme = currentTheme === "light" ? "dark" : "light";
+      html.setAttribute("data-theme", newTheme);
+      localStorage.setItem("theme", newTheme);
+      updateThemeIcon(newTheme);
+      // Update navbar background immediately
+      const navbar = document.querySelector(".navbar");
+      if (navbar && typeof updateNavbar === "function") {
+        updateNavbar();
       }
+    });
+
+    function updateThemeIcon(theme) {
+      if (theme === "dark") {
+        themeIcon.className = "fa-solid fa-sun";
+      } else {
+        themeIcon.className = "fa-solid fa-moon";
+      }
+    }
   }
 
   // Function to switch active day
@@ -132,8 +132,9 @@ document.addEventListener("DOMContentLoaded", () => {
     if (opacity < 0) opacity = 0;
 
     // Apply background with calculated opacity
-    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-    const bgRGB = isDark ? '30, 30, 30' : '255, 255, 255';
+    const isDark =
+      document.documentElement.getAttribute("data-theme") === "dark";
+    const bgRGB = isDark ? "30, 30, 30" : "255, 255, 255";
     navbar.style.background = `rgba(${bgRGB}, ${opacity})`;
 
     // Apply shadow only when some opacity exists
