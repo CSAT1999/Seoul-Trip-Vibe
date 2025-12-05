@@ -894,6 +894,13 @@ document.addEventListener("DOMContentLoaded", () => {
     initDragAndDrop();
     document.querySelectorAll(".day-body").forEach(validateSchedule);
   }
+
+  // Global click listener to clear mobile selection
+  document.addEventListener("click", (e) => {
+    if (!e.target.closest(".timeline-item")) {
+      document.querySelectorAll(".timeline-item.mobile-selected").forEach(el => el.classList.remove("mobile-selected"));
+    }
+  });
 });
 
 // Persistence Logic
@@ -1435,6 +1442,25 @@ function attachDragListeners(item) {
         updateDayLocation(dayBody.closest(".day-card").id);
         saveSchedule();
       }
+    }
+  });
+
+  // Mobile Click to Edit (Selection Mode)
+  item.addEventListener("click", (e) => {
+    // Only apply on mobile view
+    if (window.innerWidth > 768) return;
+    
+    // Ignore if clicking on interactive elements that handle their own clicks
+    if (e.target.closest('.map-btn') || e.target.closest('.edit-btn') || e.target.tagName === 'A') return;
+
+    if (item.classList.contains("mobile-selected")) {
+      // Second tap: Open Edit
+      openEditModal(item.id);
+      item.classList.remove("mobile-selected");
+    } else {
+      // First tap: Select (and deselect others)
+      document.querySelectorAll(".timeline-item.mobile-selected").forEach(el => el.classList.remove("mobile-selected"));
+      item.classList.add("mobile-selected");
     }
   });
 
