@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>首爾 9 天 8 夜冬季自由行 | Seoul Winter Vibe</title>
+    <title>Seoul Winter Vibe</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -19,18 +19,48 @@
   <body>
     <nav class="navbar">
       <div class="logo">Seoul Vibe <i class="fa-regular fa-snowflake"></i></div>
-      <div class="nav-controls">
-        <button
-          id="theme-toggle"
-          class="theme-btn"
-          aria-label="Toggle Dark Mode"
-        >
-          <i class="fa-solid fa-moon"></i>
-        </button>
+      <div class="hamburger">
+        <span class="bar"></span>
+        <span class="bar"></span>
       </div>
+      <ul class="nav-links">
+        <li>
+          <a href="index.html" class="active"
+            ><i class="fa-solid fa-house"></i> <span>Home</span></a
+          >
+        </li>
+        <li>
+          <a href="note.html"
+            ><i class="fa-solid fa-note-sticky"></i> <span>Note</span></a
+          >
+        </li>
+        <li>
+          <a href="documents.html"
+            ><i class="fa-solid fa-folder-open"></i> <span>Documents</span></a
+          >
+        </li>
+        <li>
+          <a href="saved.html"
+            ><i class="fa-solid fa-bookmark"></i> <span>Saved</span></a
+          >
+        </li>
+        <li>
+          <button
+            id="theme-toggle"
+            class="theme-btn"
+            aria-label="Toggle Dark Mode"
+          >
+            <i class="fa-solid fa-moon"></i>
+          </button>
+        </li>
+      </ul>
     </nav>
 
     <header class="hero">
+      <video autoplay muted loop playsinline class="hero-video">
+        <source src="background.MP4" type="video/mp4" />
+      </video>
+      <div class="hero-overlay"></div>
       <div class="hero-content">
         <h1>Winter in Seoul</h1>
         <p class="subtitle">12/27 - 1/4 跨年自由行</p>
@@ -889,10 +919,7 @@
 
     <footer class="app-footer">
       <div class="file-controls">
-        <button
-          id="exportBtn"
-          class="nav-btn"
-        >
+        <button id="exportBtn" class="nav-btn">
           <i class="fa-solid fa-file-export"></i> 匯出行程
         </button>
         <input
@@ -901,16 +928,10 @@
           accept=".txt,.json"
           style="display: none"
         />
-        <button
-          id="importBtn"
-          class="nav-btn"
-        >
+        <button id="importBtn" class="nav-btn">
           <i class="fa-solid fa-file-import"></i> 匯入行程
         </button>
-        <button
-          id="resetBtn"
-          class="nav-btn"
-        >
+        <button id="resetBtn" class="nav-btn">
           <i class="fa-solid fa-rotate-right"></i> 重置預設
         </button>
       </div>

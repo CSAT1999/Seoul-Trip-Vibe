@@ -36,6 +36,37 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  // Hamburger Menu Logic
+  const hamburger = document.querySelector(".hamburger");
+  const navLinks = document.querySelector(".nav-links");
+
+  if (hamburger && navLinks) {
+    hamburger.addEventListener("click", () => {
+      navLinks.classList.toggle("active");
+      hamburger.classList.toggle("active");
+    });
+
+    // Close menu when clicking a link
+    navLinks.querySelectorAll("a").forEach(link => {
+      link.addEventListener("click", () => {
+        navLinks.classList.remove("active");
+        hamburger.classList.remove("active");
+      });
+    });
+
+    // Close menu when clicking outside
+    document.addEventListener("click", (e) => {
+      if (
+        navLinks.classList.contains("active") &&
+        !navLinks.contains(e.target) &&
+        !hamburger.contains(e.target)
+      ) {
+        navLinks.classList.remove("active");
+        hamburger.classList.remove("active");
+      }
+    });
+  }
+
   // Function to switch active day
   window.switchDay = (dayId) => {
     // Update Day Cards
@@ -120,9 +151,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function updateNavbar() {
     const scrollY = window.scrollY;
-    const pageHeight =
-      document.documentElement.scrollHeight - window.innerHeight;
-    const triggerHeight = pageHeight * 0.2; // 20% of scrollable page height
+    const triggerHeight = 100; // Fixed threshold for better UX
 
     // Calculate opacity: 0 at top, 1 at triggerHeight
     let opacity = scrollY / triggerHeight;
@@ -138,12 +167,10 @@ document.addEventListener("DOMContentLoaded", () => {
     navbar.style.background = `rgba(${bgRGB}, ${opacity})`;
 
     // Apply shadow only when some opacity exists
-    // navbar.style.boxShadow = `0 2px 10px rgba(0,0,0,${opacity * 0.1})`;
-    navbar.style.boxShadow = "none"; // Remove shadow to enhance fade effect
+    navbar.style.boxShadow = "none"; 
 
-    // Switch text color when background is solid enough (e.g., > 0.5 opacity)
-    // or strictly when it reaches the target as per "100% solid" implication for state change
-    if (opacity > 0.8) {
+    // Switch text color when background is solid enough
+    if (opacity > 0.5) {
       navbar.classList.add("scrolled");
     } else {
       navbar.classList.remove("scrolled");
@@ -155,26 +182,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   window.addEventListener("scroll", updateNavbar);
 
-  // Mobile menu toggle
-  const hamburger = document.querySelector(".hamburger");
-  const navLinks = document.querySelector(".nav-links");
-
-  if (hamburger) {
-    hamburger.addEventListener("click", () => {
-      navLinks.style.display =
-        navLinks.style.display === "flex" ? "none" : "flex";
-      if (navLinks.style.display === "flex") {
-        navLinks.style.flexDirection = "column";
-        navLinks.style.position = "absolute";
-        navLinks.style.top = "60px";
-        navLinks.style.left = "0";
-        navLinks.style.width = "100%";
-        navLinks.style.background = "white";
-        navLinks.style.padding = "1rem";
-        navLinks.style.boxShadow = "0 5px 10px rgba(0,0,0,0.1)";
-      }
-    });
-  }
+  // Mobile menu toggle logic is handled at the end of the file
 
   // Weather Configuration
   const SEOUL_COORDS = { lat: 37.5665, lon: 126.978 };
@@ -1368,8 +1376,11 @@ function attachDragListeners(item) {
 
   // Mouse Drag Events
   item.addEventListener("dragstart", (e) => {
-    item.classList.add("dragging");
+    e.dataTransfer.setData("text/plain", ""); // Required for Firefox
     e.dataTransfer.effectAllowed = "move";
+    setTimeout(() => {
+      item.classList.add("dragging");
+    }, 0);
   });
 
   item.addEventListener("dragend", () => {

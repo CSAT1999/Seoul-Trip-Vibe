@@ -59,24 +59,63 @@ body {
   font-weight: 700;
   color: white;
   transition: color 0.3s ease;
+  display: flex;
+  align-items: center;
+}
+
+.logo i {
+  width: 40px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 1.2rem;
 }
 
 .navbar.scrolled .logo {
-  color: var(--primary-color);
+  color: var(--text-color);
 }
 
 .nav-links {
   display: flex;
   list-style: none;
   gap: 1.5rem;
+  align-items: center;
 }
 
 .nav-links a {
   text-decoration: none;
   color: white;
   font-weight: 500;
-  transition: color 0.3s;
+  transition: all 0.3s ease;
   font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+}
+
+/* Desktop hover effect for nav links */
+@media (min-width: 1025px) {
+  .nav-links a span {
+    max-width: 0;
+    opacity: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    transition: all 0.3s ease;
+    margin-left: 0;
+  }
+
+  .nav-links a:hover span {
+    max-width: 100px;
+    opacity: 1;
+    margin-left: 8px;
+  }
+
+  .nav-links a i {
+    font-size: 1.2rem;
+    width: 40px; /* Fixed width for icons to ensure even spacing */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
 }
 
 .navbar.scrolled .nav-links a {
@@ -87,6 +126,10 @@ body {
   color: var(--accent-color);
 }
 
+.nav-links a:hover i {
+  text-shadow: 0 0 10px var(--accent-color);
+}
+
 .hamburger {
   display: none;
   cursor: pointer;
@@ -95,17 +138,12 @@ body {
 }
 
 .navbar.scrolled .hamburger {
-  color: var(--primary-color);
+  color: var(--text-color);
 }
 
 /* Hero Section */
 .hero {
-  height: 100vh;
-  background: linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.3)),
-    url("./background.png");
-  background-size: cover;
-  background-position: center;
-  background-attachment: fixed;
+  height: 85vh; /* Shortened to reveal date nav */
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -113,6 +151,34 @@ body {
   text-align: center;
   color: white;
   position: relative;
+  overflow: hidden; /* Ensure video doesn't overflow */
+}
+
+.hero-video {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: -2;
+}
+
+.hero-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.3); /* Dark overlay for readability */
+  backdrop-filter: blur(4px); /* Mist/Blur effect */
+  -webkit-backdrop-filter: blur(4px); /* Safari support */
+  z-index: -1;
+}
+
+.hero-content {
+  position: relative;
+  z-index: 1;
 }
 
 .hero-content h1 {
@@ -428,21 +494,32 @@ body {
     color: var(--accent-color); /* Brighter color */
     z-index: 10;
     pointer-events: none; /* Allow click to pass through to the item */
-    text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
     animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    background: rgba(255, 255, 255, 0.8); /* Add a small backing to the icon for contrast */
+    background: rgba(
+      255,
+      255,
+      255,
+      0.8
+    ); /* Add a small backing to the icon for contrast */
     width: 70px;
     height: 70px;
     display: flex;
     align-items: center;
     justify-content: center;
     border-radius: 50%;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
   }
 
   @keyframes popIn {
-    from { transform: translate(-50%, -50%) scale(0); opacity: 0; }
-    to { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+    from {
+      transform: translate(-50%, -50%) scale(0);
+      opacity: 0;
+    }
+    to {
+      transform: translate(-50%, -50%) scale(1);
+      opacity: 1;
+    }
   }
 
   /* Hide default edit button when selected on mobile to avoid duplicates */
@@ -666,8 +743,11 @@ textarea:focus {
   font-size: 0.9rem;
 }
 
-.timeline-item:hover .edit-btn {
-  opacity: 1;
+/* Only show edit button on hover for desktop */
+@media (min-width: 769px) {
+  .timeline-item:hover .edit-btn {
+    opacity: 1;
+  }
 }
 
 .edit-btn:hover {
@@ -720,10 +800,7 @@ textarea:focus {
 
 /* Mobile Responsive */
 @media (max-width: 1024px) {
-  .hero {
-    background-position: top center;
-    background-attachment: scroll; /* Better mobile support */
-  }
+  /* .hero background properties removed as we use video now */
 
   .weather-widget {
     padding: 8px 12px;
@@ -734,28 +811,96 @@ textarea:focus {
   }
 
   .hamburger {
-    display: block;
-    font-size: 1.5rem;
-    color: var(--primary-color);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 5px;
+    width: 40px;
+    height: 40px;
+    cursor: pointer;
+    z-index: 1001;
+    transition: transform 0.3s ease;
+  }
+
+  .hamburger .bar {
+    width: 20px;
+    height: 2px;
+    background-color: white;
+    border-radius: 2px;
+    transition: all 0.3s ease;
+    transform-origin: center;
+  }
+
+  .navbar.scrolled .hamburger .bar {
+    background-color: var(--text-color);
+  }
+
+  /* Hamburger Animation to Cross */
+  .hamburger.active .bar:nth-child(1) {
+    transform: translateY(3.5px) rotate(45deg);
+  }
+
+  .hamburger.active .bar:nth-child(2) {
+    transform: translateY(-3.5px) rotate(-45deg);
   }
 
   .nav-links {
-    display: none;
-    /* Styles for when it's toggled open */
+    position: fixed;
+    top: 0;
+    right: -100%; /* Start off-screen */
+    width: 70%;
+    max-width: 300px;
+    height: 100vh;
+    /* Semi-transparent background with blur */
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(10px);
+    display: flex;
     flex-direction: column;
-    position: absolute;
-    top: 60px;
-    left: 0;
-    width: 100%;
-    background: white;
-    padding: 1rem;
-    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
-    gap: 1rem;
-    text-align: center;
+    align-items: flex-end; /* Align to right */
+    justify-content: center;
+    padding-right: 3rem; /* Space from right edge */
+    transition: right 0.3s ease;
+    z-index: 999;
+    box-shadow: -5px 0 15px rgba(0, 0, 0, 0.1);
+  }
+
+  [data-theme="dark"] .nav-links {
+    background: rgba(30, 30, 30, 0.85);
+  }
+
+  .nav-links.active {
+    right: 0;
   }
 
   .nav-links a {
     color: var(--text-color);
+    font-size: 1.2rem;
+    margin: 1rem 0;
+    display: flex;
+    flex-direction: row-reverse; /* Icon on the right */
+    align-items: center;
+    gap: 1rem; /* Space between text and icon */
+  }
+
+  .nav-links a i {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  /* Position the theme toggle button at the bottom right */
+  .nav-links li:last-child {
+    position: absolute;
+    bottom: 3rem;
+    right: 3rem;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
   }
 
   .hero-content h1 {
@@ -1212,7 +1357,7 @@ footer {
     background: #222; /* Darker background for dark mode */
     border-color: #555;
   }
-  
+
   [data-theme="dark"] .timeline-item.mobile-selected::after {
     color: var(--primary-color); /* Use primary (light blue) for contrast */
     background: rgba(44, 62, 80, 0.8); /* Dark backing for the icon */
@@ -1333,7 +1478,7 @@ footer {
 
 /* Mobile Nav Dark Mode */
 [data-theme="dark"] .nav-links {
-  background: #1e1e1e;
+  background: rgba(30, 30, 30, 0.85);
 }
 
 /* Mobile Text Size Adjustments */
@@ -1354,7 +1499,7 @@ footer {
     font-size: 0.8rem;
   }
 
-  .day-badge, 
+  .day-badge,
   .weather-widget {
     border: none;
     padding: 0;

@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Saved | Seoul Winter Vibe</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=Playfair+Display:wght@700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <nav class="navbar">
+      <div class="logo">Seoul Vibe <i class="fa-regular fa-snowflake"></i></div>
+      <div class="hamburger">
+        <span class="bar"></span>
+        <span class="bar"></span>
+      </div>
+      <ul class="nav-links">
+        <li><a href="index.html"><i class="fa-solid fa-house"></i> <span>Home</span></a></li>
+        <li><a href="note.html"><i class="fa-solid fa-note-sticky"></i> <span>Note</span></a></li>
+        <li><a href="documents.html"><i class="fa-solid fa-folder-open"></i> <span>Documents</span></a></li>
+        <li><a href="saved.html" class="active"><i class="fa-solid fa-bookmark"></i> <span>Saved</span></a></li>
+        <li>
+          <button
+            id="theme-toggle"
+            class="theme-btn"
+            aria-label="Toggle Dark Mode"
+          >
+            <i class="fa-solid fa-moon"></i>
+          </button>
+        </li>
+      </ul>
+    </nav>
+
+    <header class="hero" style="height: 40vh; min-height: 300px;">
+      <video autoplay muted loop playsinline class="hero-video">
+        <source src="background.MP4" type="video/mp4">
+      </video>
+      <div class="hero-overlay"></div>
+      <div class="hero-content">
+        <h1>Saved</h1>
+        <p class="subtitle">Saved Items & Favorites</p>
+      </div>
+    </header>
+
+    <main class="container" style="padding: 2rem;">
+      <div class="day-card active" style="display: block;">
+        <h2>Saved Items</h2>
+        <p>This is the saved items page.</p>
+      </div>
+    </main>
+
+    <script src="script.js"></script>
+  </body>
+</html>
