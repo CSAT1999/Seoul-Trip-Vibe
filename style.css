@@ -154,6 +154,13 @@ body {
   overflow: hidden; /* Ensure video doesn't overflow */
 }
 
+@media (max-width: 768px) {
+  .hero {
+    height: calc(100dvh - 140px); /* Automatically adjust to fit date picker on mobile */
+    min-height: 400px; /* Prevent it from becoming too small on landscape */
+  }
+}
+
 .hero-video {
   position: absolute;
   top: 0;
