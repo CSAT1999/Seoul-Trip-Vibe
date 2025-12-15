@@ -479,12 +479,18 @@ body {
   display: none;
 }
 
+/* Hide mobile-selected edit icon when dragging */
+.timeline-item.dragging.mobile-selected::after {
+  display: none !important;
+}
+
 /* Mobile Selection Mode (Simulates Hover/Drag Visuals) */
 @media (max-width: 768px) {
   .timeline-item.mobile-selected {
     opacity: 0.9; /* Keep it relatively opaque to see the content */
     background: #eeeeee; /* Dimmer (darker) background */
-    border: 2px dashed #ccc;
+    outline: 2px dashed #ccc; /* Use outline instead of border to avoid layout shift */
+    outline-offset: 10px; /* Extend outline to include bottom margin */
     border-radius: 8px;
     position: relative;
   }
@@ -840,6 +846,11 @@ textarea:focus {
   }
 
   .navbar.scrolled .hamburger .bar {
+    background-color: var(--text-color);
+  }
+
+  /* When menu is open in light mode, make hamburger dark */
+  .hamburger.active .bar {
     background-color: var(--text-color);
   }
 
@@ -1559,5 +1570,49 @@ footer {
   .btn-delete {
     padding: 0.4rem 0.8rem;
     font-size: 0.8rem;
+  }
+}
+.link-item-row {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+  align-items: center;
+}
+
+.link-item-row input {
+  margin-bottom: 0 !important; /* Override default input margin */
+}
+
+.link-item-row .btn-delete-link {
+  background: #e74c3c;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  width: 42px; /* Match input height */
+  height: 42px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.link-item-row .btn-delete-link:hover {
+  background: #c0392b;
+}
+
+@media (max-width: 768px) {
+  .link-item-row {
+    flex-direction: column;
+    align-items: stretch;
+    background: #f9f9f9;
+    padding: 10px;
+    border-radius: 8px;
+  }
+  
+  .link-item-row .btn-delete-link {
+    width: 100%;
+    height: 36px;
+    margin-top: 5px;
   }
 }

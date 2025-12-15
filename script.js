@@ -94,7 +94,12 @@ document.addEventListener("DOMContentLoaded", () => {
     // Scroll to top of itinerary view
     const itineraryView = document.querySelector(".itinerary-view");
     if (itineraryView) {
-      const offset = itineraryView.offsetTop - 150; // Adjust for header
+      // On mobile, scroll to show the schedule card at the top
+      // On desktop, leave some space for the date picker
+      const isMobile = window.innerWidth <= 768;
+      const offset = isMobile 
+        ? itineraryView.offsetTop - 80  // Mobile: less offset to hide date picker
+        : itineraryView.offsetTop - 150; // Desktop: more space
       window.scrollTo({ top: offset, behavior: "smooth" });
     }
   };
@@ -454,6 +459,29 @@ document.addEventListener("DOMContentLoaded", () => {
     };
   }
 
+  // Link Management Logic
+  function addLinkInput(title = "", url = "") {
+    const container = document.getElementById("linkListContainer");
+    const row = document.createElement("div");
+    row.className = "link-item-row";
+    row.innerHTML = `
+      <input type="text" placeholder="標題 (例如: 參考連結)" value="${title}" class="link-title" style="flex: 1;">
+      <input type="url" placeholder="https://..." value="${url}" class="link-url" style="flex: 2;">
+      <button type="button" class="btn-delete-link" title="刪除連結"><i class="fa-solid fa-trash"></i></button>
+    `;
+    
+    row.querySelector(".btn-delete-link").onclick = () => {
+      row.remove();
+    };
+    
+    container.appendChild(row);
+  }
+
+  const addLinkBtn = document.getElementById("addLinkBtn");
+  if (addLinkBtn) {
+    addLinkBtn.onclick = () => addLinkInput();
+  }
+
   window.openAddModal = (dayId) => {
     // Clear Form
     document.getElementById("editItemId").value = "";
@@ -469,7 +497,10 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("editDescription").value = "";
     document.getElementById("editCost").value = "";
     document.getElementById("editCurrency").value = "KRW";
-    document.getElementById("editLink").value = "";
+    
+    // Clear and Reset Links
+    document.getElementById("linkListContainer").innerHTML = "";
+    addLinkInput(); // Add one empty row by default
 
     // Hide Delete Button
     if (deleteBtn) deleteBtn.style.display = "none";
@@ -618,9 +649,21 @@ document.addEventListener("DOMContentLoaded", () => {
       document.getElementById("editCurrency").value = "KRW";
     }
 
-    // Link
-    const link = item.querySelector(".content a:not(.map-btn)");
-    document.getElementById("editLink").value = link ? link.href : "";
+    // Links
+    document.getElementById("linkListContainer").innerHTML = "";
+    const links = item.querySelectorAll(".content a:not(.map-btn)");
+    if (links.length > 0) {
+      links.forEach(link => {
+        // Extract title from innerHTML (remove icon)
+        const clone = link.cloneNode(true);
+        const icon = clone.querySelector("i");
+        if (icon) icon.remove();
+        const linkTitle = clone.textContent.trim();
+        addLinkInput(linkTitle, link.href);
+      });
+    } else {
+      addLinkInput(); // Add one empty row
+    }
 
     modal.style.display = "block";
   };
@@ -655,7 +698,17 @@ document.addEventListener("DOMContentLoaded", () => {
       const description = document.getElementById("editDescription").value;
       const cost = document.getElementById("editCost").value;
       const currency = document.getElementById("editCurrency").value;
-      const linkUrl = document.getElementById("editLink").value;
+      
+      // Get Links
+      const linkRows = document.querySelectorAll(".link-item-row");
+      const links = [];
+      linkRows.forEach(row => {
+        const title = row.querySelector(".link-title").value.trim();
+        const url = row.querySelector(".link-url").value.trim();
+        if (url) {
+          links.push({ title: title || "參考連結", url: url });
+        }
+      });
 
       let item;
       let isNew = false;
@@ -772,16 +825,19 @@ document.addEventListener("DOMContentLoaded", () => {
         content.appendChild(document.createTextNode(costText));
       }
 
-      if (linkUrl) {
-        content.appendChild(document.createElement("br"));
-        const link = document.createElement("a");
-        link.href = linkUrl;
-        link.target = "_blank";
-        link.innerHTML = '<i class="fa-solid fa-link"></i> 參考連結';
-        link.style.fontSize = "0.9rem";
-        link.style.marginTop = "5px";
-        link.style.display = "inline-block";
-        content.appendChild(link);
+      // Links
+      if (links.length > 0) {
+        links.forEach(linkData => {
+          content.appendChild(document.createElement("br"));
+          const link = document.createElement("a");
+          link.href = linkData.url;
+          link.target = "_blank";
+          link.innerHTML = `<i class="fa-solid fa-link"></i> ${linkData.title}`;
+          link.style.fontSize = "0.9rem";
+          link.style.marginTop = "5px";
+          link.style.display = "inline-block";
+          content.appendChild(link);
+        });
       }
 
       if (isNew) {
@@ -962,8 +1018,17 @@ function serializeSchedule() {
           }
         }
 
-        const link = item.querySelector(".content a:not(.map-btn)");
-        const linkUrl = link ? link.href : "";
+        const links = [];
+        const linkEls = item.querySelectorAll(".content a:not(.map-btn)");
+        linkEls.forEach(link => {
+          const clone = link.cloneNode(true);
+          const icon = clone.querySelector("i");
+          if (icon) icon.remove();
+          links.push({
+            title: clone.textContent.trim(),
+            url: link.href
+          });
+        });
 
         const mapBtn = item.querySelector(".map-btn");
         let mapQuery = "";
@@ -985,7 +1050,7 @@ function serializeSchedule() {
           description,
           tag,
           costText,
-          linkUrl,
+          links, // Store array of links
           mapQuery,
         });
       });
@@ -1148,8 +1213,22 @@ function restoreSchedule(data = null) {
           content.appendChild(document.createTextNode(itemData.costText));
         }
 
-        // Link
-        if (itemData.linkUrl) {
+        // Links (New Format)
+        if (itemData.links && Array.isArray(itemData.links)) {
+          itemData.links.forEach(linkData => {
+            content.appendChild(document.createElement("br"));
+            const link = document.createElement("a");
+            link.href = linkData.url;
+            link.target = "_blank";
+            link.style.fontSize = "0.9rem";
+            link.style.marginTop = "5px";
+            link.style.display = "inline-block";
+            link.innerHTML = `<i class="fa-solid fa-link"></i> ${linkData.title || "參考連結"}`;
+            content.appendChild(link);
+          });
+        } 
+        // Backward Compatibility (Old Format)
+        else if (itemData.linkUrl) {
           content.appendChild(document.createElement("br"));
           const link = document.createElement("a");
           link.href = itemData.linkUrl;
@@ -1398,14 +1477,24 @@ function attachDragListeners(item) {
   let touchTimer = null;
   let isDragging = false;
   let startY = 0;
+  let dragHappened = false; // Track if a drag actually occurred
 
   item.addEventListener("touchstart", (e) => {
     if (e.touches.length > 1) return;
     startY = e.touches[0].clientY;
+    dragHappened = false; // Reset for each touch
+    
+    // Immediately remove mobile-selected when touch starts
+    // This prevents the edit icon from showing during potential drag
+    const wasMobileSelected = item.classList.contains("mobile-selected");
+    if (wasMobileSelected) {
+      item.classList.remove("mobile-selected");
+    }
     
     // Long press to start drag (300ms)
     touchTimer = setTimeout(() => {
       isDragging = true;
+      dragHappened = true;
       item.classList.add("dragging");
       if (navigator.vibrate) navigator.vibrate(50);
     }, 300);
@@ -1460,6 +1549,12 @@ function attachDragListeners(item) {
   item.addEventListener("click", (e) => {
     // Only apply on mobile view
     if (window.innerWidth > 768) return;
+    
+    // Ignore if a drag just happened
+    if (dragHappened) {
+      dragHappened = false;
+      return;
+    }
     
     // Ignore if clicking on interactive elements that handle their own clicks
     if (e.target.closest('.map-btn') || e.target.closest('.edit-btn') || e.target.tagName === 'A') return;
