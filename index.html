@@ -15,10 +15,11 @@
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
     />
     <link rel="stylesheet" href="style.css" />
+    <script src="i18n.js"></script>
   </head>
   <body>
     <nav class="navbar">
-      <div class="logo">Seoul Vibe <i class="fa-regular fa-snowflake"></i></div>
+      <div class="logo" id="navLogo" data-i18n="nav.logo">Travel Vibe <i class="fa-solid fa-plane"></i></div>
       <div class="hamburger">
         <span class="bar"></span>
         <span class="bar"></span>
@@ -26,23 +27,33 @@
       <ul class="nav-links">
         <li>
           <a href="index.html" class="active"
-            ><i class="fa-solid fa-house"></i> <span>Home</span></a
+            ><i class="fa-solid fa-house"></i> <span data-i18n="nav.home">Home</span></a
           >
         </li>
         <li>
           <a href="note.html"
-            ><i class="fa-solid fa-note-sticky"></i> <span>Note</span></a
+            ><i class="fa-solid fa-note-sticky"></i> <span data-i18n="nav.note">Note</span></a
           >
         </li>
         <li>
           <a href="documents.html"
-            ><i class="fa-solid fa-folder-open"></i> <span>Documents</span></a
+            ><i class="fa-solid fa-folder-open"></i> <span data-i18n="nav.documents">Documents</span></a
           >
         </li>
         <li>
           <a href="saved.html"
-            ><i class="fa-solid fa-bookmark"></i> <span>Saved</span></a
+            ><i class="fa-solid fa-bookmark"></i> <span data-i18n="nav.saved">Saved</span></a
           >
+        </li>
+        <li>
+          <button
+            id="languageToggle"
+            class="theme-btn"
+            aria-label="Switch Language"
+            onclick="switchLanguage(currentLang === 'zh' ? 'en' : 'zh')"
+          >
+            <i class="fa-solid fa-language"></i>
+          </button>
         </li>
         <li>
           <button
@@ -56,14 +67,12 @@
       </ul>
     </nav>
 
-    <header class="hero">
-      <video autoplay muted loop playsinline class="hero-video">
-        <source src="background.MP4" type="video/mp4" />
-      </video>
+    <header class="hero" id="heroSection">
+      <div id="heroBackground"></div>
       <div class="hero-overlay"></div>
       <div class="hero-content">
-        <h1>Winter in Seoul</h1>
-        <p class="subtitle">12/27 - 1/4</p>
+        <h1 id="heroTitle" data-i18n="hero.title">My Travel Adventure</h1>
+        <p class="subtitle" id="heroSubtitle" data-i18n="hero.subtitle">Select dates to begin</p>
       </div>
       <div class="scroll-indicator">
         <span></span>
@@ -75,49 +84,20 @@
     <main class="container">
       <!-- Date Navigation -->
       <div id="itinerary-start" class="date-nav-container" data-aos="fade-up">
-        <div class="date-nav">
-          <div class="date-item active" data-target="#day1">
-            <span class="date-num">27</span>
-            <span class="date-month">DEC</span>
-          </div>
-          <div class="date-item" data-target="#day2">
-            <span class="date-num">28</span>
-            <span class="date-month">DEC</span>
-          </div>
-          <div class="date-item" data-target="#day3">
-            <span class="date-num">29</span>
-            <span class="date-month">DEC</span>
-          </div>
-          <div class="date-item" data-target="#day4">
-            <span class="date-num">30</span>
-            <span class="date-month">DEC</span>
-          </div>
-          <div class="date-item" data-target="#day5">
-            <span class="date-num">31</span>
-            <span class="date-month">DEC</span>
-          </div>
-          <div class="date-item" data-target="#day6">
-            <span class="date-num">01</span>
-            <span class="date-month">JAN</span>
-          </div>
-          <div class="date-item" data-target="#day7">
-            <span class="date-num">02</span>
-            <span class="date-month">JAN</span>
-          </div>
-          <div class="date-item" data-target="#day8">
-            <span class="date-num">03</span>
-            <span class="date-month">JAN</span>
-          </div>
-          <div class="date-item" data-target="#day9">
-            <span class="date-num">04</span>
-            <span class="date-month">JAN</span>
-          </div>
+        <div class="date-nav" id="dateNavigation">
+          <!-- Date items will be dynamically generated -->
         </div>
       </div>
 
-      <div class="itinerary-view">
+      <div class="itinerary-view" id="itineraryView">
+        <!-- Day cards will be dynamically generated from imported schedule -->
+        <div class="empty-state" id="emptyState" style="text-align: center; padding: 4rem 2rem; color: var(--light-text);">
+          <i class="fa-solid fa-calendar-days" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.3;"></i>
+          <p style="font-size: 1.2rem;" data-i18n="empty.title">尚未建立行程</p>
+          <p data-i18n="empty.subtitle">請完成設定精靈或匯入行程檔案</p>
+        </div>
         <!-- Day 1 -->
-        <div class="day-card active" id="day1">
+        <div class="day-card active" id="day1" style="display: none;">
           <div class="day-header">
             <div class="day-left-col">
               <div class="day-badge">
@@ -920,7 +900,7 @@
     <footer class="app-footer">
       <div class="file-controls">
         <button id="exportBtn" class="nav-btn">
-          <i class="fa-solid fa-file-export"></i> 匯出行程
+          <i class="fa-solid fa-file-export"></i> <span data-i18n="footer.export">匯出行程</span>
         </button>
         <input
           type="file"
@@ -929,13 +909,13 @@
           style="display: none"
         />
         <button id="importBtn" class="nav-btn">
-          <i class="fa-solid fa-file-import"></i> 匯入行程
+          <i class="fa-solid fa-file-import"></i> <span data-i18n="footer.import">匯入行程</span>
         </button>
         <button id="resetBtn" class="nav-btn">
-          <i class="fa-solid fa-rotate-right"></i> 重置預設
+          <i class="fa-solid fa-rotate-right"></i> <span data-i18n="footer.reset">重置預設</span>
         </button>
       </div>
-      <p>&copy; 2024 Seoul Winter Vibe</p>
+      <p data-i18n="footer.copyright">&copy; 2024 Seoul Winter Vibe</p>
     </footer>
 
     <!-- Edit Schedule Modal -->
@@ -1085,6 +1065,89 @@
               <button type="submit" class="btn-save">儲存變更</button>
             </div>
           </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Setup Wizard Modal -->
+    <div id="setupWizard" class="modal setup-modal" style="display: none;">
+      <div class="modal-content setup-content">
+        <div class="modal-header">
+          <h2><i class="fa-solid fa-magic"></i> <span data-i18n="setup.title">旅程設定精靈</span></h2>
+          <button id="wizardLanguageToggle" class="language-toggle" onclick="switchLanguage(currentLang === 'zh' ? 'en' : 'zh')" title="Switch Language / 切換語言">
+            <i class="fa-solid fa-language"></i>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="setup-step" id="step1">
+            <h3 data-i18n="setup.step1.title">步驟 1: 基本資訊</h3>
+            <div class="form-group">
+              <label for="tripTitle" data-i18n="setup.step1.tripTitle">旅程標題 *</label>
+              <input type="text" id="tripTitle" data-i18n="setup.step1.tripTitlePlaceholder" placeholder="例如: Winter in Seoul" required />
+            </div>
+            <div class="form-group">
+              <label for="tripLocation" data-i18n="setup.step1.location">地點/主題</label>
+              <input type="text" id="tripLocation" data-i18n="setup.step1.locationPlaceholder" placeholder="例如: Seoul, Tokyo, Paris" />
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="startDate" data-i18n="setup.step1.startDate">開始日期 *</label>
+                <input type="date" id="startDate" required />
+              </div>
+              <div class="form-group">
+                <label for="endDate" data-i18n="setup.step1.endDate">結束日期 *</label>
+                <input type="date" id="endDate" required />
+              </div>
+            </div>
+            <div class="setup-actions">
+              <button type="button" class="nav-btn" onclick="goToStep(2)"><span data-i18n="setup.step1.next">下一步</span> <i class="fa-solid fa-arrow-right"></i></button>
+            </div>
+          </div>
+
+          <div class="setup-step" id="step2" style="display: none;">
+            <h3 data-i18n="setup.step2.title">步驟 2: 背景媒體</h3>
+            <div class="form-group">
+              <label data-i18n="setup.step2.bgType">選擇背景類型</label>
+              <div class="radio-group">
+                <label><input type="radio" name="bgType" value="video" checked /> <span data-i18n="setup.step2.video">影片</span></label>
+                <label><input type="radio" name="bgType" value="image" /> <span data-i18n="setup.step2.image">圖片</span></label>
+                <label><input type="radio" name="bgType" value="color" /> <span data-i18n="setup.step2.color">純色背景</span></label>
+              </div>
+            </div>
+            <div class="form-group" id="mediaUploadGroup">
+              <label for="mediaUpload" data-i18n="setup.step2.upload">上傳背景媒體</label>
+              <input type="file" id="mediaUpload" accept="video/*,image/*" />
+              <p class="help-text" data-i18n="setup.step2.uploadHelp">支援影片 (MP4, WebM) 或圖片 (JPG, PNG, WebP)</p>
+            </div>
+            <div class="form-group" id="colorPickerGroup" style="display: none;">
+              <label for="bgColor" data-i18n="setup.step2.chooseColor">選擇背景顏色</label>
+              <input type="color" id="bgColor" value="#2c3e50" />
+            </div>
+            <div id="mediaPreview" class="media-preview"></div>
+            <div class="setup-actions">
+              <button type="button" class="nav-btn btn-secondary" onclick="goToStep(1)"><i class="fa-solid fa-arrow-left"></i> <span data-i18n="setup.step2.prev">上一步</span></button>
+              <button type="button" class="nav-btn" onclick="goToStep(3)"><span data-i18n="setup.step2.next">下一步</span> <i class="fa-solid fa-arrow-right"></i></button>
+            </div>
+          </div>
+
+          <div class="setup-step" id="step3" style="display: none;">
+            <h3 data-i18n="setup.step3.title">步驟 3: 匯入行程</h3>
+            <div class="form-group">
+              <label for="scheduleUpload" data-i18n="setup.step3.upload">上傳行程檔案 (選填)</label>
+              <input type="file" id="scheduleUpload" accept=".txt,.json" />
+              <p class="help-text" data-i18n="setup.step3.uploadHelp">可選擇匯入之前匯出的行程檔案，或稍後手動建立</p>
+            </div>
+            <div class="form-group">
+              <label class="checkbox-label">
+                <input type="checkbox" id="createEmptySchedule" checked />
+                <span data-i18n="setup.step3.createEmpty">如未上傳檔案，建立空白行程表</span>
+              </label>
+            </div>
+            <div class="setup-actions">
+              <button type="button" class="nav-btn btn-secondary" onclick="goToStep(2)"><i class="fa-solid fa-arrow-left"></i> <span data-i18n="setup.step3.prev">上一步</span></button>
+              <button type="button" class="nav-btn btn-primary" onclick="completeSetup()"><i class="fa-solid fa-check"></i> <span data-i18n="setup.step3.complete">完成設定</span></button>
+            </div>
+          </div>
         </div>
       </div>
     </div>

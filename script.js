@@ -1,4 +1,7 @@
 document.addEventListener("DOMContentLoaded", () => {
+  // Check if trip is configured
+  checkTripConfiguration();
+
   // Date Navigation Logic
   const dateItems = document.querySelectorAll(".date-item");
   const dayCards = document.querySelectorAll(".day-card");
@@ -1572,3 +1575,509 @@ function attachDragListeners(item) {
 
   item.dataset.dragInitialized = "true";
 }
+
+// ========== Setup Wizard Functions ==========
+
+function checkTripConfiguration() {
+  const tripConfig = localStorage.getItem("tripConfiguration");
+  if (!tripConfig) {
+    // No configuration found, show setup wizard
+    showSetupWizard();
+  } else {
+    // Load trip configuration
+    loadTripConfiguration();
+  }
+}
+
+function showSetupWizard() {
+  const wizard = document.getElementById("setupWizard");
+  if (wizard) {
+    wizard.style.display = "block";
+    document.body.classList.add("modal-open");
+  }
+}
+
+function goToStep(stepNumber) {
+  // Validate current step before proceeding
+  const currentStep = document.querySelector(".setup-step[style*='display: block'], .setup-step:not([style*='display: none'])");
+  
+  if (currentStep) {
+    const currentStepNum = currentStep.id.replace('step', '');
+    
+    // Validate Step 1
+    if (currentStepNum === '1' && stepNumber > 1) {
+      const tripTitle = document.getElementById("tripTitle").value.trim();
+      const startDate = document.getElementById("startDate").value;
+      const endDate = document.getElementById("endDate").value;
+      
+      if (!tripTitle) {
+        alert(t('validation.tripTitle'));
+        document.getElementById("tripTitle").focus();
+        return;
+      }
+      
+      if (!startDate) {
+        alert(t('validation.startDate'));
+        document.getElementById("startDate").focus();
+        return;
+      }
+      
+      if (!endDate) {
+        alert(t('validation.endDate'));
+        document.getElementById("endDate").focus();
+        return;
+      }
+      
+      // Validate date range
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+      if (end < start) {
+        alert(t('validation.dateRange'));
+        document.getElementById("endDate").focus();
+        return;
+      }
+    }
+    
+    // Validate Step 2
+    if (currentStepNum === '2' && stepNumber > 2) {
+      const bgType = document.querySelector('input[name="bgType"]:checked').value;
+      const mediaFile = document.getElementById("mediaUpload").files[0];
+      
+      if ((bgType === "video" || bgType === "image") && !mediaFile) {
+        const mediaType = bgType === "video" ? t('validation.videoType') : t('validation.imageType');
+        if (!confirm(t('validation.noMedia', { type: mediaType }))) {
+          return;
+        }
+      }
+    }
+  }
+  
+  // Hide all steps
+  document.querySelectorAll(".setup-step").forEach(step => {
+    step.style.display = "none";
+  });
+  
+  // Show requested step
+  const targetStep = document.getElementById(`step${stepNumber}`);
+  if (targetStep) {
+    targetStep.style.display = "block";
+  }
+}
+
+// Handle background type change
+document.addEventListener("DOMContentLoaded", () => {
+  const bgTypeRadios = document.querySelectorAll('input[name="bgType"]');
+  bgTypeRadios.forEach(radio => {
+    radio.addEventListener("change", (e) => {
+      const mediaGroup = document.getElementById("mediaUploadGroup");
+      const colorGroup = document.getElementById("colorPickerGroup");
+      
+      if (e.target.value === "color") {
+        mediaGroup.style.display = "none";
+        colorGroup.style.display = "block";
+      } else if (e.target.value === "none") {
+        mediaGroup.style.display = "none";
+        colorGroup.style.display = "none";
+      } else {
+        mediaGroup.style.display = "block";
+        colorGroup.style.display = "none";
+      }
+    });
+  });
+
+  // Media upload preview
+  const mediaUpload = document.getElementById("mediaUpload");
+  if (mediaUpload) {
+    mediaUpload.addEventListener("change", (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        const preview = document.getElementById("mediaPreview");
+        
+        reader.onload = (event) => {
+          const isVideo = file.type.startsWith("video/");
+          const isImage = file.type.startsWith("image/");
+          
+          if (isVideo) {
+            preview.innerHTML = `<video controls src="${event.target.result}" style="max-width: 100%; max-height: 300px;"></video>`;
+          } else if (isImage) {
+            preview.innerHTML = `<img src="${event.target.result}" alt="Preview" style="max-width: 100%; max-height: 300px;">`;
+          }
+        };
+        
+        reader.readAsDataURL(file);
+      }
+    });
+  }
+});
+
+function completeSetup() {
+  console.log("Complete setup called");
+  // Validate required fields
+  const tripTitle = document.getElementById("tripTitle").value.trim();
+  const startDate = document.getElementById("startDate").value;
+  const endDate = document.getElementById("endDate").value;
+  console.log("Form values:", { tripTitle, startDate, endDate });
+  
+  if (!tripTitle || !startDate || !endDate) {
+    alert("請填寫必填欄位：旅程標題、開始日期、結束日期");
+    return;
+  }
+
+  // Validate date range
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+  if (end < start) {
+    alert("結束日期不能早於開始日期");
+    return;
+  }
+
+  // Collect configuration
+  const tripLocation = document.getElementById("tripLocation").value.trim();
+  const bgType = document.querySelector('input[name="bgType"]:checked').value;
+  const bgColor = document.getElementById("bgColor").value;
+  const createEmpty = document.getElementById("createEmptySchedule").checked;
+  
+  const config = {
+    title: tripTitle,
+    location: tripLocation,
+    startDate: startDate,
+    endDate: endDate,
+    bgType: bgType,
+    bgColor: bgColor
+  };
+
+  // Handle background media
+  const mediaFile = document.getElementById("mediaUpload").files[0];
+  if (mediaFile && (bgType === "video" || bgType === "image")) {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      config.bgMedia = e.target.result;
+      config.bgMediaType = mediaFile.type;
+      saveAndApplyConfig(config, createEmpty);
+    };
+    reader.readAsDataURL(mediaFile);
+  } else {
+    saveAndApplyConfig(config, createEmpty);
+  }
+}
+
+function saveAndApplyConfig(config, createEmpty) {
+  console.log("Saving config:", config);
+  // Save to localStorage
+  localStorage.setItem("tripConfiguration", JSON.stringify(config));
+  console.log("Config saved to localStorage");
+
+  // Handle schedule import
+  const scheduleFile = document.getElementById("scheduleUpload").files[0];
+  if (scheduleFile) {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const scheduleData = JSON.parse(e.target.result);
+        localStorage.setItem("seoulTripSchedule", JSON.stringify(scheduleData));
+        applyConfigurationAndReload();
+      } catch (err) {
+        console.error("Failed to parse schedule file:", err);
+        alert("行程檔案格式錯誤");
+      }
+    };
+    reader.readAsText(scheduleFile);
+  } else if (createEmpty) {
+    // Create empty schedule based on date range
+    createEmptySchedule(config.startDate, config.endDate);
+    applyConfigurationAndReload();
+  } else {
+    applyConfigurationAndReload();
+  }
+}
+
+function createEmptySchedule(startDate, endDate) {
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+  const days = Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
+  
+  const schedule = {};
+  for (let i = 1; i <= days; i++) {
+    schedule[`day${i}`] = [];
+  }
+  
+  localStorage.setItem("seoulTripSchedule", JSON.stringify(schedule));
+}
+
+function applyConfigurationAndReload() {
+  // Close wizard
+  document.getElementById("setupWizard").style.display = "none";
+  document.body.classList.remove("modal-open");
+  
+  // Reload page to apply configuration
+  location.reload();
+}
+
+function loadTripConfiguration() {
+  try {
+    const config = JSON.parse(localStorage.getItem("tripConfiguration"));
+    console.log("Loading trip configuration:", config);
+    if (!config) {
+      console.log("No configuration found");
+      return;
+    }
+
+    // Update page title
+    document.title = config.title;
+    console.log("Updated title to:", config.title);
+
+    // Update navbar logo
+    const navLogo = document.getElementById("navLogo");
+    if (navLogo && config.location) {
+      navLogo.innerHTML = `${config.location} <i class="fa-solid fa-plane"></i>`;
+    }
+
+    // Update hero section
+    const heroTitle = document.getElementById("heroTitle");
+    const heroSubtitle = document.getElementById("heroSubtitle");
+    
+    if (heroTitle) {
+      heroTitle.textContent = config.title;
+      heroTitle.removeAttribute('data-i18n'); // Prevent i18n from overwriting
+      console.log("Set hero title to:", config.title);
+    }
+    if (heroSubtitle) {
+      const start = new Date(config.startDate);
+      const end = new Date(config.endDate);
+      const startStr = `${start.getMonth() + 1}/${start.getDate()}`;
+      const endStr = `${end.getMonth() + 1}/${end.getDate()}`;
+      heroSubtitle.textContent = `${startStr} - ${endStr}`;
+      heroSubtitle.removeAttribute('data-i18n'); // Prevent i18n from overwriting
+      console.log("Set hero subtitle to:", `${startStr} - ${endStr}`);
+    }
+
+    // Apply background
+    const heroBackground = document.getElementById("heroBackground");
+    if (heroBackground) {
+      heroBackground.innerHTML = "";
+      console.log("Applying background - Type:", config.bgType);
+      
+      if (config.bgType === "video" && config.bgMedia) {
+        const video = document.createElement("video");
+        video.autoplay = true;
+        video.muted = true;
+        video.loop = true;
+        video.playsInline = true;
+        video.className = "hero-video";
+        video.src = config.bgMedia;
+        heroBackground.appendChild(video);
+        console.log("Video background applied");
+      } else if (config.bgType === "image" && config.bgMedia) {
+        const img = document.createElement("img");
+        img.src = config.bgMedia;
+        img.alt = "Hero background";
+        img.style.width = "100%";
+        img.style.height = "100%";
+        img.style.objectFit = "cover";
+        heroBackground.appendChild(img);
+        console.log("Image background applied");
+      } else if (config.bgType === "color") {
+        heroBackground.style.background = config.bgColor;
+        heroBackground.classList.add("color-bg");
+        console.log("Color background applied:", config.bgColor);
+      }
+    }
+
+    // Generate day cards based on date range
+    generateDayCards(config.startDate, config.endDate);
+    
+    // Generate date navigation based on date range
+    generateDateNavigation(config.startDate, config.endDate);
+
+    // Load schedule if exists
+    const schedule = localStorage.getItem("seoulTripSchedule");
+    if (schedule) {
+      try {
+        const scheduleData = JSON.parse(schedule);
+        if (Object.keys(scheduleData).length > 0) {
+          // Hide empty state
+          const emptyState = document.getElementById("emptyState");
+          if (emptyState) emptyState.style.display = "none";
+          
+          // Restore schedule
+          restoreSchedule(scheduleData);
+        }
+      } catch (err) {
+        console.error("Failed to load schedule:", err);
+      }
+    }
+  } catch (err) {
+    console.error("Failed to load trip configuration:", err);
+  }
+}
+
+function generateDayCards(startDate, endDate) {
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+  const days = Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
+  
+  const itineraryView = document.getElementById("itineraryView");
+  if (!itineraryView) return;
+  
+  console.log("Generating", days, "day cards");
+  
+  // Hide empty state
+  const emptyState = document.getElementById("emptyState");
+  if (emptyState) emptyState.style.display = "none";
+  
+  // Clear existing day cards (but keep empty state)
+  const oldDayCards = itineraryView.querySelectorAll(".day-card");
+  oldDayCards.forEach(card => card.remove());
+  
+  const months = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
+  
+  for (let i = 0; i < days; i++) {
+    const currentDate = new Date(start);
+    currentDate.setDate(start.getDate() + i);
+    const dayNum = i + 1;
+    
+    const dayCard = document.createElement("div");
+    dayCard.className = `day-card${i === 0 ? " active" : ""}`;
+    dayCard.id = `day${dayNum}`;
+    
+    const dayNumPadded = dayNum.toString().padStart(2, '0');
+    
+    dayCard.innerHTML = `
+      <div class="day-header">
+        <div class="day-left-col">
+          <div class="day-badge">
+            <span class="day-badge-num">${dayNumPadded}</span>
+            <span class="day-badge-text" data-i18n="day.badge">Day</span>
+          </div>
+          <span class="location-tag"></span>
+        </div>
+        <div class="day-title-group">
+          <h2>${currentDate.getDate()} ${months[currentDate.getMonth()]}</h2>
+        </div>
+      </div>
+      <div class="day-body">
+        <div class="timeline-item add-item-row">
+          <div class="time-badge-spacer"></div>
+          <button class="add-circle-btn" title="新增行程"><i class="fa-solid fa-plus"></i></button>
+        </div>
+      </div>
+      <div class="card-footer">
+        ${i > 0 ? `<button class="nav-btn prev-btn" onclick="switchDay('day${dayNum - 1}')"><i class="fa-solid fa-arrow-left"></i> <span data-i18n="day.prev">上一天</span></button>` : ''}
+        ${i < days - 1 ? `<button class="nav-btn next-btn" onclick="switchDay('day${dayNum + 1}')"><span data-i18n="day.next">下一天</span> <i class="fa-solid fa-arrow-right"></i></button>` : ''}
+      </div>
+    `;
+    
+    // Add click listener to add button
+    const addBtn = dayCard.querySelector(".add-circle-btn");
+    if (addBtn) {
+      addBtn.parentElement.onclick = () => openAddModal(`day${dayNum}`);
+    }
+    
+    itineraryView.appendChild(dayCard);
+  }
+  
+  console.log("Day cards generated successfully");
+  
+  // Initialize drag and drop for new cards
+  initDragAndDrop();
+  
+  // Apply translations to new elements
+  if (typeof applyTranslations === 'function') {
+    applyTranslations();
+  }
+}
+
+function generateDateNavigation(startDate, endDate) {
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+  const days = Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
+  
+  const dateNav = document.getElementById("dateNavigation");
+  if (!dateNav) return;
+  
+  dateNav.innerHTML = "";
+  
+  const months = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
+  
+  for (let i = 0; i < days; i++) {
+    const currentDate = new Date(start);
+    currentDate.setDate(start.getDate() + i);
+    
+    const dateItem = document.createElement("div");
+    dateItem.className = `date-item${i === 0 ? " active" : ""}`;
+    dateItem.dataset.target = `#day${i + 1}`;
+    dateItem.innerHTML = `
+      <span class="date-num">${currentDate.getDate()}</span>
+      <span class="date-month">${months[currentDate.getMonth()]}</span>
+    `;
+    
+    // Add click listener
+    dateItem.addEventListener("click", () => {
+      const targetId = dateItem.dataset.target.substring(1);
+      switchDay(targetId);
+    });
+
+    // Allow dragging over date items
+    dateItem.addEventListener("dragenter", (e) => {
+      if (document.querySelector(".timeline-item.dragging")) {
+        dateItem.classList.add("drag-over");
+      }
+    });
+
+    dateItem.addEventListener("dragover", (e) => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = "move";
+    });
+
+    dateItem.addEventListener("drop", (e) => {
+      e.preventDefault();
+      const draggable = document.querySelector(".dragging");
+      if (draggable) {
+        const targetId = dateItem.dataset.target.substring(1);
+        switchDay(targetId);
+        setTimeout(() => {
+          const targetCard = document.getElementById(targetId);
+          if (targetCard) {
+            const targetBody = targetCard.querySelector(".day-body");
+            const addBtn = targetBody.querySelector(".add-item-row");
+            if (addBtn) {
+              targetBody.insertBefore(draggable, addBtn);
+            } else {
+              targetBody.appendChild(draggable);
+            }
+            draggable.classList.remove("dragging");
+            saveSchedule();
+            updateDayLocation(targetId);
+            validateSchedule(targetBody);
+          }
+        }, 100);
+      }
+    });
+    
+    dateNav.appendChild(dateItem);
+  }
+}
+
+// Add reset configuration option to footer
+document.addEventListener("DOMContentLoaded", () => {
+  const fileControls = document.querySelector(".file-controls");
+  if (fileControls) {
+    const resetConfigBtn = document.createElement("button");
+    resetConfigBtn.className = "nav-btn";
+    resetConfigBtn.innerHTML = '<i class="fa-solid fa-gear"></i> <span data-i18n="footer.reconfig">重新設定</span>';
+    resetConfigBtn.addEventListener("click", () => {
+      if (confirm(t('confirm.reconfig'))) {
+        localStorage.removeItem("tripConfiguration");
+        localStorage.removeItem("seoulTripSchedule");
+        location.reload();
+      }
+    });
+    fileControls.appendChild(resetConfigBtn);
+    
+    // Apply translation to the button after appending
+    if (typeof applyTranslations === 'function') {
+      applyTranslations();
+    }
+  }
+});
